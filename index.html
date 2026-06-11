@@ -31,7 +31,7 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:system-ui,Sego
 <div id="logo"></div>
 <div id="start">
 <h1>Church Program</h1>
-<p>Press start to play full-screen. Order: GHS &rarr; Choir Song &rarr; GS Message, with the church logo animated between each.</p>
+<p>Press start to play full-screen. Sections play in order, with the church logo animated between each.</p>
 <button id="startBtn">&#9654; Start Program</button>
 <div id="err"></div>
 </div>
@@ -45,7 +45,10 @@ var logoSec=Math.max(1,parseInt(q.get('logoSec')||'3',10)||3);
 var gsRate=parseFloat(q.get('gsRate'))||1;
 var revealHold=Math.max(0,parseFloat(q.get('reveal'))||3.5);
 function rng(v){var a=(v||'').split('-');return{start:parseFloat(a[0])||0,end:parseFloat(a[1])||0}}
-var sections=[Object.assign({name:'GHS',rate:1},rng(q.get('ghs'))),Object.assign({name:'Choir Song',rate:1},rng(q.get('choir'))),Object.assign({name:'GS Message',rate:gsRate},rng(q.get('gs')))].filter(function(s){return s.end>s.start});
+var sections=[];
+var sj=q.get('sections');
+if(sj){try{var arr=JSON.parse(sj);if(Array.isArray(arr)){arr.forEach(function(o){var st=Number(o.start)||0,en=Number(o.end)||0;if(en>st)sections.push({name:String(o.name||'Section'),start:st,end:en,rate:parseFloat(o.rate)||1})})}}catch(e){}}
+if(!sections.length){sections=[Object.assign({name:'GHS',rate:1},rng(q.get('ghs'))),Object.assign({name:'Choir Song',rate:1},rng(q.get('choir'))),Object.assign({name:'GS Message',rate:gsRate},rng(q.get('gs')))].filter(function(s){return s.end>s.start})}
 var app=document.getElementById('app'),elStart=document.getElementById('start'),elErr=document.getElementById('err'),elLogo=document.getElementById('logo'),elHtml5=document.getElementById('html5');
 if(/\.(mp4|webm|m4v)(\?|$)/i.test(logoUrl)){var v=document.createElement('video');v.src=logoUrl;v.autoplay=true;v.muted=true;v.loop=true;v.setAttribute('playsinline','');elLogo.appendChild(v);}
 else{var img=document.createElement('img');img.src=logoUrl;img.alt='Church logo';img.onerror=function(){this.remove();var d=document.createElement('div');d.className='fallback';d.textContent='DEEPER LIFE BIBLE CHURCH';elLogo.appendChild(d);};elLogo.appendChild(img);}

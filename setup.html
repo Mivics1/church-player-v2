@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monday Program Builder</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#eef2f8;color:#1f2430;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:24px 14px;line-height:1.45}
+.wrap{max-width:680px;margin:0 auto}
+.logo{display:block;max-height:84px;margin:0 auto 8px}
+h1{text-align:center;color:#15357a;font-size:clamp(20px,4vw,28px);margin-bottom:18px}
+.card{background:#fff;border:1px solid #d8deea;border-radius:14px;padding:22px;box-shadow:0 6px 22px rgba(20,40,90,.06)}
+label{display:block;font-size:13px;font-weight:600;color:#444;margin:12px 0 5px}
+input,select{width:100%;padding:11px 12px;border:1px solid #cfd6e4;border-radius:9px;font-size:15px;background:#fff}
+input:focus,select:focus{outline:none;border-color:#15357a;box-shadow:0 0 0 3px rgba(21,53,122,.12)}
+.row2{display:flex;gap:12px}.row2>div{flex:1}
+hr{border:0;border-top:1px solid #e6eaf2;margin:20px 0 6px}
+h2{font-size:16px;color:#15357a;margin:6px 0 10px}
+.adder{display:grid;grid-template-columns:1fr 110px 110px 120px auto;gap:8px;align-items:end}
+.adder label{margin-top:0}
+.add{background:#15357a;color:#fff;border:0;border-radius:9px;padding:11px 16px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}
+.add:hover{background:#1c4396}
+.msg{min-height:18px;font-size:13px;color:#c0392b;margin:10px 2px}
+.msg.ok{color:#1e7d34}
+ol.list{list-style:none;margin:8px 0 4px;padding:0}
+ol.list li{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f6f8fc;border:1px solid #e2e8f4;border-radius:9px;padding:10px 12px;margin-bottom:8px}
+ol.list .info{font-size:14px;font-weight:600;color:#26324a}
+.ctr button{border:1px solid #cfd6e4;background:#fff;border-radius:7px;width:30px;height:30px;font-size:15px;cursor:pointer;margin-left:5px;color:#33415c}
+.ctr button:hover{background:#eef2fb}
+.launch{display:block;width:100%;margin-top:16px;background:#1e7d34;color:#fff;border:0;border-radius:999px;padding:15px;font-size:18px;font-weight:700;cursor:pointer}
+.launch:hover{background:#23973e}
+.launch:disabled{background:#a9b4c6;cursor:not-allowed}
+.hint{font-size:12px;color:#7a8398;margin-top:6px;text-align:center}
+@media(max-width:560px){.adder{grid-template-columns:1fr 1fr}.adder .add{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<img class="logo" src="logo.png" alt="Deeper Life Bible Church" onerror="this.style.display='none'">
+<h1>Monday Program Builder</h1>
+<div class="card">
+<label>Video link (YouTube or recording URL)</label>
+<input id="video" placeholder="https://youtu.be/...">
+<label>Church logo or animation URL (optional)</label>
+<input id="logo" placeholder="leave blank to use the church logo">
+<div class="row2">
+<div><label>Logo seconds between sections</label><input id="logoSec" type="number" value="3" min="1"></div>
+<div><label>Reveal hold (sec)</label><input id="reveal" type="number" value="3.5" min="0" step="0.5"></div>
+</div>
+<hr>
+<h2>Sections (added in order)</h2>
+<div class="adder">
+<div><label>Name</label><input id="sName" placeholder="e.g. GHS"></div>
+<div><label>Start mm:ss</label><input id="sStart" placeholder="2:15"></div>
+<div><label>End mm:ss</label><input id="sEnd" placeholder="6:40"></div>
+<div><label>Speed</label><select id="sSpeed"><option value="1">Normal</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select></div>
+<button id="addBtn" type="button" class="add">&#10133; Add</button>
+</div>
+<div id="msg" class="msg"></div>
+<ol id="list" class="list"></ol>
+<button id="launchBtn" type="button" class="launch" disabled>&#9654; Launch Player</button>
+<div class="hint">Add each section, then Launch. Times accept mm:ss or h:mm:ss.</div>
+</div>
+</div>
+<script>
+(function(){
+var list=[];
+function $(id){return document.getElementById(id)}
+function toSec(t){t=String(t||'').trim();if(!t)return NaN;if(/^[0-9]+(\.[0-9]+)?$/.test(t))return Math.round(parseFloat(t));var p=t.split(':').map(function(x){return parseInt(x,10)});if(p.some(function(n){return isNaN(n)}))return NaN;var s=0;for(var i=0;i<p.length;i++)s=s*60+p[i];return s}
+function mmss(s){s=Math.max(0,Math.round(s));var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return (h?h+':'+(m<10?'0':''):'')+m+':'+(x<10?'0':'')+x}
+function speedLabel(r){return r===1.5?'1.5x':(r===1.25?'1.25x':'Normal')}
+function msg(t,ok){var m=$('msg');m.textContent=t||'';m.className='msg'+(ok?' ok':'')}
+function render(){
+var ol=$('list');ol.innerHTML='';
+list.forEach(function(s,i){
+var li=document.createElement('li');
+var info=document.createElement('span');info.className='info';
+info.textContent=(i+1)+'.  '+s.name+'   '+mmss(s.start)+'–'+mmss(s.end)+(s.rate!==1?'   ('+speedLabel(s.rate)+')':'');
+var ctr=document.createElement('span');ctr.className='ctr';
+function mk(txt,fn,title){var b=document.createElement('button');b.type='button';b.textContent=txt;b.title=title;b.onclick=fn;return b}
+ctr.appendChild(mk('↑',function(){if(i>0){var t=list[i-1];list[i-1]=list[i];list[i]=t;render()}},'Move up'));
+ctr.appendChild(mk('↓',function(){if(i<list.length-1){var t=list[i+1];list[i+1]=list[i];list[i]=t;render()}},'Move down'));
+ctr.appendChild(mk('✕',function(){list.splice(i,1);render()},'Remove'));
+li.appendChild(info);li.appendChild(ctr);ol.appendChild(li)
+});
+$('launchBtn').disabled=!(list.length&&$('video').value.trim())
+}
+function add(){
+var name=$('sName').value.trim();
+var st=toSec($('sStart').value),en=toSec($('sEnd').value);
+if(!name)return msg('Enter a section name.');
+if(isNaN(st)||isNaN(en))return msg('Enter valid start/end times (mm:ss).');
+if(en<=st)return msg('End time must be after start time.');
+list.push({name:name,start:st,end:en,rate:parseFloat($('sSpeed').value)||1});
+msg('Added “'+name+'”.',true);
+$('sName').value='';$('sStart').value='';$('sEnd').value='';$('sName').focus();
+render()
+}
+function launch(){
+var video=$('video').value.trim();
+if(!video)return msg('Enter the video link.');
+if(!list.length)return msg('Add at least one section.');
+var p=new URLSearchParams();
+p.set('video',video);
+var logo=$('logo').value.trim();if(logo)p.set('logo',logo);
+p.set('logoSec',String(parseInt($('logoSec').value,10)||3));
+p.set('reveal',String(parseFloat($('reveal').value)||3.5));
+p.set('sections',JSON.stringify(list.map(function(s){return{name:s.name,start:s.start,end:s.end,rate:s.rate}})));
+location.href='index.html?'+p.toString()
+}
+$('addBtn').onclick=add;
+$('launchBtn').onclick=launch;
+$('video').addEventListener('input',render);
+$('sEnd').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add()}});
+render()
+})();
+</script>
+</body>
+</html>
