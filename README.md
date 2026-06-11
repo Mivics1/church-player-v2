@@ -6,6 +6,22 @@ A no-install, full-screen web player that streams chosen sections of a recorded 
 
 ---
 
+## Why this vs. just playing on YouTube
+
+YouTube is still the host — this app is the **presentation layer** that turns a raw recording into a clean, automated, branded service playback:
+
+- **Only your sections, in your order** — auto-jumps to each part (even out of sequence) and plays start→end. No live scrubbing to timestamps in front of the congregation.
+- **No YouTube clutter** — hides the title, channel, controls, "Watch on YouTube", and the end-screen grid of recommended videos. Just clean full-screen video.
+- **Church-branded** — animated logo between every section and at the end, instead of a wall of suggested clips.
+- **Hands-free & repeatable** — one **Start** click runs the whole program; same result every week.
+- **Per-section speed** — speed up a long message (1.25×/1.5×) without touching the songs.
+- **Ad-free** with your own non-monetized upload (keep ads off; upload as *Unlisted*) — no surprise ad mid-service.
+- **No install, low cost** — runs in Chrome on the AV PC; hosted on GitHub Pages + n8n.
+
+> It rides on YouTube's free, reliable hosting but removes everything that makes it look like YouTube — and automates the service so the operator just presses **Start**.
+
+---
+
 ## How it works
 
 ```
